@@ -5,6 +5,10 @@ import plotly.io as pio
 from fpdf import FPDF
 import os
 import stat
+import streamlit as st
+
+# Desabilitar a função de verificação de arquivos
+st.set_option('server.fileWatcherType', 'none')
 
 uploaded_file = "Planilha_modelo_dash.xlsx"
 
