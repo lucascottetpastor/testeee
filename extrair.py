@@ -8,6 +8,16 @@ import stat
 
 uploaded_file = st.file_uploader("Escolha um arquivo Excel", type=["xlsx", "xls"])
 
+def garantir_permissoes_pasta(pasta):
+    if not os.path.exists(pasta):
+        os.makedirs(pasta, exist_ok=True)
+        
+    try:
+        os.chmod(pasta, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+        print(f"Permissões garantidas para a pasta {pasta}")
+    except Exception as e:
+        print(f"Não foi possível alterar as permissões da pasta {pasta}: {e}")
+
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
     
