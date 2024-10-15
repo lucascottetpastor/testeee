@@ -7,7 +7,7 @@ import os
 import stat
 import streamlit as st
 
-uploaded_file = "Planilha_modelo_dash.xlsx"
+uploaded_file = st.file_uploader("Escolha um arquivo Excel", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
