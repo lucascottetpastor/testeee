@@ -6,7 +6,7 @@ from fpdf import FPDF
 import os
 import stat
 
-uploaded_file = r"C:\Users\lucas\OneDrive\Área de Trabalho\Planilha_modelo_dash.xlsx"
+uploaded_file = "Planilha_modelo_dash.xlsx"
 
 def garantir_permissoes_pasta(pasta):
     if not os.path.exists(pasta):
