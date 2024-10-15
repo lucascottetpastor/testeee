@@ -12,21 +12,11 @@ st.set_option('server.fileWatcherType', 'none')
 
 uploaded_file = "Planilha_modelo_dash.xlsx"
 
-def garantir_permissoes_pasta(pasta):
-    if not os.path.exists(pasta):
-        os.makedirs(pasta, exist_ok=True)
-        
-    try:
-        os.chmod(pasta, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
-        print(f"Permissões garantidas para a pasta {pasta}")
-    except Exception as e:
-        print(f"Não foi possível alterar as permissões da pasta {pasta}: {e}")
-
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
-    
+
     verificacao = ['instrutor', 'aprovado', 'nm_formacao', 'nm_unidade']
-    
+
     if all(col in df.columns for col in verificacao):
         width, height = 700, 400
 
@@ -45,7 +35,6 @@ if uploaded_file is not None:
         aprovados_unidade = df[df['aprovado'] == True].groupby('nm_unidade').size().reset_index(name='Quantidade')
         fig4 = px.bar(aprovados_unidade, x='nm_unidade', y='Quantidade', title='Aprovados por Unidade (Todos)', 
                       color='nm_unidade', width=width, height=height, color_discrete_sequence=px.colors.qualitative.Set2)
-
 
         aprovados_top10_unidade = aprovados_unidade.sort_values(by='Quantidade', ascending=False).head(10)
         fig5 = px.bar(aprovados_top10_unidade, x='nm_unidade', y='Quantidade', title='10 Unidades com mais Aprovados', 
@@ -73,45 +62,44 @@ if uploaded_file is not None:
         st.header('10 Unidades com menos Aprovados')
         st.plotly_chart(fig6)
 
-        image_folder = 'images'
-        garantir_permissoes_pasta(image_folder)
+        # Criar um diretório temporário para salvar as imagens
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pio.write_image(fig1, os.path.join(temp_dir, 'aprovados_instrutor.png'))
+            pio.write_image(fig2, os.path.join(temp_dir, 'reprovados_instrutor.png'))
+            pio.write_image(fig3, os.path.join(temp_dir, 'aprovados_formacao.png'))
+            pio.write_image(fig4, os.path.join(temp_dir, 'aprovados_unidade_todos.png'))
+            pio.write_image(fig5, os.path.join(temp_dir, 'top10_unidades.png'))
+            pio.write_image(fig6, os.path.join(temp_dir, 'bottom10_unidades.png'))
 
-        pio.write_image(fig1, os.path.join(image_folder, 'aprovados_instrutor.png'))
-        pio.write_image(fig2, os.path.join(image_folder, 'reprovados_instrutor.png'))
-        pio.write_image(fig3, os.path.join(image_folder, 'aprovados_formacao.png'))
-        pio.write_image(fig4, os.path.join(image_folder, 'aprovados_unidade_todos.png'))
-        pio.write_image(fig5, os.path.join(image_folder, 'top10_unidades.png'))
-        pio.write_image(fig6, os.path.join(image_folder, 'bottom10_unidades.png'))
+            pdf = FPDF()
+            pdf.set_auto_page_break(auto=True, margin=15)
 
-        pdf = FPDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
+            pdf.add_page()
+            pdf.set_font('Arial', 'B', 16)
+            pdf.cell(200, 10, txt="Aprovados por Instrutor", ln=True, align='C')
+            pdf.image(os.path.join(temp_dir, 'aprovados_instrutor.png'), x=10, y=20, w=pdf.w - 20)
 
-        pdf.add_page()
-        pdf.set_font('Arial', 'B', 16)
-        pdf.cell(200, 10, txt="Aprovados por Instrutor", ln=True, align='C')
-        pdf.image(os.path.join(image_folder, 'aprovados_instrutor.png'), x=10, y=20, w=pdf.w - 20)
+            pdf.add_page()
+            pdf.cell(200, 10, txt="Reprovados por Instrutor", ln=True, align='C')
+            pdf.image(os.path.join(temp_dir, 'reprovados_instrutor.png'), x=10, y=20, w=pdf.w - 20)
 
-        pdf.add_page()
-        pdf.cell(200, 10, txt="Reprovados por Instrutor", ln=True, align='C')
-        pdf.image(os.path.join(image_folder, 'reprovados_instrutor.png'), x=10, y=20, w=pdf.w - 20)
+            pdf.add_page()
+            pdf.cell(200, 10, txt="Aprovados por Formação", ln=True, align='C')
+            pdf.image(os.path.join(temp_dir, 'aprovados_formacao.png'), x=10, y=20, w=pdf.w - 20)
 
-        pdf.add_page()
-        pdf.cell(200, 10, txt="Aprovados por Formação", ln=True, align='C')
-        pdf.image(os.path.join(image_folder, 'aprovados_formacao.png'), x=10, y=20, w=pdf.w - 20)
+            pdf.add_page()
+            pdf.cell(200, 10, txt="Aprovados por Unidade (Todos)", ln=True, align='C')
+            pdf.image(os.path.join(temp_dir, 'aprovados_unidade_todos.png'), x=10, y=20, w=pdf.w - 20)
 
-        pdf.add_page()
-        pdf.cell(200, 10, txt="Aprovados por Unidade (Todos)", ln=True, align='C')
-        pdf.image(os.path.join(image_folder, 'aprovados_unidade_todos.png'), x=10, y=20, w=pdf.w - 20)
+            pdf.add_page()
+            pdf.cell(200, 10, txt="10 Unidades com mais Aprovados", ln=True, align='C')
+            pdf.image(os.path.join(temp_dir, 'top10_unidades.png'), x=10, y=20, w=pdf.w - 20)
 
-        pdf.add_page()
-        pdf.cell(200, 10, txt="10 Unidades com mais Aprovados", ln=True, align='C')
-        pdf.image(os.path.join(image_folder, 'top10_unidades.png'), x=10, y=20, w=pdf.w - 20)
+            pdf.add_page()
+            pdf.cell(200, 10, txt="10 Unidades com menos Aprovados", ln=True, align='C')
+            pdf.image(os.path.join(temp_dir, 'bottom10_unidades.png'), x=10, y=20, w=pdf.w - 20)
 
-        pdf.add_page()
-        pdf.cell(200, 10, txt="10 Unidades com menos Aprovados", ln=True, align='C')
-        pdf.image(os.path.join(image_folder, 'bottom10_unidades.png'), x=10, y=20, w=pdf.w - 20)
-
-        pdf.output('saida.pdf')
+            pdf.output('saida.pdf')
 
     else:
         st.error(f"Colunas faltando. O arquivo deve conter as colunas: {verificacao}")
