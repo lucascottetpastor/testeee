@@ -8,16 +8,6 @@ import stat
 
 uploaded_file = 'Planilha_modelo_dash.xlsx'
 
-def garantir_permissoes_pasta(pasta):
-    if not os.path.exists(pasta):
-        os.makedirs(pasta, exist_ok=True)
-        
-    try:
-        os.chmod(pasta, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
-        print(f"Permissões garantidas para a pasta {pasta}")
-    except Exception as e:
-        print(f"Não foi possível alterar as permissões da pasta {pasta}: {e}")
-
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
     
@@ -70,8 +60,7 @@ if uploaded_file is not None:
         st.plotly_chart(fig6)
 
         image_folder = 'images'
-        garantir_permissoes_pasta(image_folder)
-
+        
         pio.write_image(fig1, os.path.join(image_folder, 'aprovados_instrutor.png'))
         pio.write_image(fig2, os.path.join(image_folder, 'reprovados_instrutor.png'))
         pio.write_image(fig3, os.path.join(image_folder, 'aprovados_formacao.png'))
